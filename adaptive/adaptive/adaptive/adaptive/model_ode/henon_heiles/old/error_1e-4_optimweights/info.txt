@@ -1,0 +1,30 @@
+step_sizes = [0.56, 0.58, 0.6, 0.62, 0.65, 0.68, 0.71, 0.74, 0.77, 0.8]
+error_tol = 0.0001
+x0 = np.array([0, (1 / 6) ** 0.5, 0, (1 / 6) ** 0.5])
+integrator = RKDP()
+max_dist=200
+
+
+----scaler---
+    scaler = test_scaler.pkl
+    
+
+----model----
+    dim_state = dim_state * (memory + 1)
+    n_hidden = 5 * dim_state
+
+    inputs = tf.keras.Input(shape=(dim_state,), name='state')
+    x = tf.keras.layers.Dense(n_hidden, activation='relu')(inputs)
+    x = tf.keras.layers.Dense(n_hidden, activation='relu')(x)
+    x = tf.keras.layers.Dense(n_hidden, activation='relu')(x)
+    x = tf.keras.layers.Dense(n_hidden, activation='relu')(x)
+    outputs = tf.keras.layers.Dense(dim_action)(x)
+
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+
+
+----best model----
+model with (err, nfev) = (6.749906961891213e-05,9.005684651441095) had integrator with
+	b = [ 0.09625268 -0.00503385  0.44555495  0.65616376 -0.3175493   0.12472836]
+	instead of
+	    [ 0.09114583  0.          0.4492363   0.65104167 -0.32237618  0.13095238]
