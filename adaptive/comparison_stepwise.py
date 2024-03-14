@@ -1,17 +1,17 @@
 import numpy as np
-from adaptive.environments import IntegrationEnv
-from adaptive.build_models import build_value_model, build_estimator_model
+from environments import IntegrationEnv
+from build_models import build_value_model, build_estimator_model
 from functions import Sinus, Pulse, StaggeredSinus, SuperposeSinus, Polynomial, BrokenPolynomial, DoublePendulumInteg
 from joblib import dump, load
 from scipy.integrate import quad, romberg, quad_vec
-from adaptive.adapt_simps import AdaptSimps, AdaptSimpsConstEvals, Simps
-from adaptive.boole import BoolesRule
-from adaptive.romberg import Romberg
-from adaptive.predictor import *
-from adaptive.comparison import integrate_env
-from adaptive.integrator import Simpson, IntegratorLinReg, Boole, Kronrod21, Gauss21
+from adapt_simps import AdaptSimps, AdaptSimpsConstEvals, Simps
+from boole import BoolesRule
+from romberg import Romberg
+from predictor import *
+from comparison import integrate_env
+from integrator import Simpson, IntegratorLinReg, Boole, Kronrod21, Gauss21
 from matplotlib import pyplot as plt
-from adaptive.plots import plot_pareto
+from plots import plot_pareto
 
 
 def one_fun():

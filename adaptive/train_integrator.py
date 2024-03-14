@@ -2,10 +2,10 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from joblib import dump, load
 from functions import Sinus, SuperposeSinus, BrokenPolynomial, DoublePendulumInteg
-from adaptive.environments import IntegrationEnv
-from adaptive.integrator import Integrator, IntegratorLinReg, Simpson, Gauss21
-from adaptive.predictor import Predictor, PredictorQ
-from adaptive.build_models import build_value_model, build_estimator_model
+from environments import IntegrationEnv
+from integrator import Integrator, IntegratorLinReg, Simpson, Gauss21
+from predictor import Predictor, PredictorQ
+from build_models import build_value_model, build_estimator_model
 
 
 def main():

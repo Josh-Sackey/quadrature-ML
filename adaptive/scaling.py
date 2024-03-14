@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from adaptive.environments import ODEEnv
-from adaptive.integrator import IntegratorODE
+from environments import ODEEnv
+from integrator import IntegratorODE
 from pickle import dump
 import random
 
@@ -50,14 +50,14 @@ def build_scaler(integrator, env, step_sizes, x0=None, num_episodes=1, filename=
 
 
 def test_build_scaler():
-    from functions import HenonHeiles
-    from adaptive.integrator import RKDP
+    from functions import HenonHeiles, VanDerPol
+    from integrator import RKDP
 
     step_sizes = [0.42, 0.44, 0.46, 0.48, 0.5, 0.52, 0.56, 0.6]
     dim_state = 6
-    x0 = np.array([0, 0.5, 0, 0])
+    x0 = np.array([1, 0])
     integrator = RKDP()
-    env = ODEEnv(fun=HenonHeiles(), max_iterations=10000, initial_step_size=step_sizes[0],
+    env = ODEEnv(fun=VanDerPol(), max_iterations=10000, initial_step_size=step_sizes[0],
                  step_size_range=(step_sizes[0], step_sizes[-1]),
                  error_tol=0.00001, nodes_per_integ=dim_state, x0=x0, max_dist=100)
 

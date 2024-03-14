@@ -1,13 +1,13 @@
 import numpy as np
 import math
 from matplotlib import pyplot as plt
-from adaptive.environments import ODEEnv
-from adaptive.integrator import ClassicRungeKutta, RKDP
+from environments import ODEEnv
+from integrator import ClassicRungeKutta, RKDP
 from functions import Rotation, LorenzSystem, Pendulum, VanDerPol, HenonHeiles
-from adaptive.experience import ExperienceODE
-from adaptive.predictor import PredictorQODE
-from adaptive.build_models import build_value_model, build_value_modelODE
-from adaptive.performance_tracker import PerformanceTrackerODE
+from experience import ExperienceODE
+from predictor import PredictorQODE
+from build_models import build_value_model, build_value_modelODE
+from performance_tracker import PerformanceTrackerODE
 from pickle import load
 from sklearn.preprocessing import StandardScaler
 from copy import deepcopy

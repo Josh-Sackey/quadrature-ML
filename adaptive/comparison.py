@@ -1,12 +1,12 @@
 import numpy as np
-from adaptive.environments import IntegrationEnv
-from adaptive.build_models import build_value_model
+from environments import IntegrationEnv
+from build_models import build_value_model
 from functions import Sinus, Pulse, StaggeredSinus, SuperposeSinus
 from joblib import dump, load
-from adaptive.adapt_simps import AdaptSimps, AdaptSimpsConstEvals, Simps
-from adaptive.predictor import *
-from adaptive.integrator import Integrator, Simpson
-from adaptive.error_estimator import Estimator
+from adapt_simps import AdaptSimps, AdaptSimpsConstEvals, Simps
+from predictor import *
+from integrator import Integrator, Simpson
+from error_estimator import Estimator
 
 
 def integrate_env(predictor, integrator, env, x0, x1, plot=False, estimator=None):

@@ -1,12 +1,12 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from adaptive.build_models import build_value_model
-from adaptive.experience import Experience
-from adaptive.environments import IntegrationEnv
-from adaptive.predictor import PredictorQ
-from adaptive.integrator import Simpson, IntegratorLinReg, Boole, Kronrod21
-from adaptive.performance_tracker import PerformanceTracker
+from build_models import build_value_model
+from experience import Experience
+from environments import IntegrationEnv
+from predictor import PredictorQ
+from integrator import Simpson, IntegratorLinReg, Boole, Kronrod21
+from performance_tracker import PerformanceTracker
 from functions import Sinus, SuperposeSinus, BrokenPolynomial, Pulse, DoublePendulumInteg
 from joblib import dump, load
 

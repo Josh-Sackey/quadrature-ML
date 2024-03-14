@@ -3,12 +3,12 @@ from sklearn.linear_model import LinearRegression
 from joblib import dump, load
 from sklearn.preprocessing import StandardScaler
 from functions import Sinus, SuperposeSinus, BrokenPolynomial
-from adaptive.environments import IntegrationEnv
-from adaptive.integrator import Integrator, IntegratorLinReg, Simpson
-from adaptive.predictor import Predictor, PredictorQ
-from adaptive.build_models import build_value_model
-from adaptive.error_estimator import Estimator
-from adaptive.build_models import build_estimator_model
+from environments import IntegrationEnv
+from integrator import Integrator, IntegratorLinReg, Simpson
+from predictor import Predictor, PredictorQ
+from build_models import build_value_model
+from error_estimator import Estimator
+from build_models import build_estimator_model
 from matplotlib import pyplot as plt
 
 

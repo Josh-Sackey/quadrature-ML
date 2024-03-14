@@ -2,13 +2,13 @@ import joblib
 import numpy as np
 import math
 from matplotlib import pyplot as plt
-from adaptive.environments import ODEEnv
-from adaptive.integrator import IntegratorODE, ClassicRungeKutta, RKDP
+from environments import ODEEnv
+from integrator import IntegratorODE, ClassicRungeKutta, RKDP
 from functions import Rotation, LorenzSystem, Pendulum, VanDerPol, HenonHeiles, DoublePendulum
-from adaptive.experience import ExperienceODE
-from adaptive.predictor import PredictorODE, PredictorQODE, PredictorConstODE, MetaQODE
-from adaptive.build_models import build_value_model, build_value_modelODE
-from adaptive.performance_tracker import PerformanceTrackerODE, BestPredictors
+from experience import ExperienceODE
+from predictor import PredictorODE, PredictorQODE, PredictorConstODE, MetaQODE
+from build_models import build_value_model, build_value_modelODE
+from performance_tracker import PerformanceTrackerODE, BestPredictors
 from joblib import dump, load
 from sklearn.preprocessing import StandardScaler
 from scipy.integrate import solve_ivp

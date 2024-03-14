@@ -1,11 +1,11 @@
 import numpy as np
-from adaptive.environments import IntegrationEnv
-from adaptive.build_models import build_value_model
+from environments import IntegrationEnv
+from build_models import build_value_model
 from functions import Sinus, SuperposeSinus
-from adaptive.integrator import Integrator, Simpson, IntegratorLinReg
+from integrator import Integrator, Simpson, IntegratorLinReg
 from joblib import dump, load
 from copy import deepcopy
-from adaptive.predictor import *
+from predictor import *
 
 
 def benchmark(predictors, integrators, num_episodes, env):
