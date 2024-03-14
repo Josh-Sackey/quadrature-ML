@@ -1190,6 +1190,36 @@ class DoublePendulum(FunctionODE):
 
         raise RuntimeError(f"Cannot find initial condition with energy {energy}.")
 
+class LotkaVolterra(FunctionODE):
+    """Lotka Voltera system"""
+    def __init__ (self):
+        super().__init__()
+        self.alpha, self.beta, self.delta, self.gamma = self.choose_params()
+    
+    @staticmethod
+    def choose_params():
+        alpha=1.1 #prey reproduction rate
+        beta=0.4 #predation rate
+        delta=0.1 #predator reproduction rate
+        gamma=0.4 #predator death rate
+        return alpha, beta, delta, gamma
+    
+    def reset(self, reset_params=True):
+        self.evals=0
+        if reset_params:
+            self.alpha, self.beta, self.delta, self.gamma = self.choose_params()
+        
+    def __call__(self,t,x):
+        self.evals +=1
+        out=np.array([self.alpha*x[0] - self.beta*x[0]*x[1], self.delta*x[0]*x[1] - self.gamma*x[1]])
+        return out
+    
+    def solve(self, t_0, x_0, t_1, t_eval=None):
+        if t_eval is None:
+            sol= solve_ivp(self, (t_0, t_1), x_0, rtol=1e-8)
+            return sol.y[:, -1]
+        sol= solve_ivp(self,(t_0,t_1),x_0, t_eval=t_eval, rtol=1e-8)
+        return sol.t, sol.y.T
 
 def test_pendulum():
     switch = (0.05, 3.3)
@@ -1370,11 +1400,31 @@ def test_Rotation():
 
     plt.show()
 
+def test_lotka_volterra():
+    l_v= LotkaVolterra()
+    t_0=0
+    t_1=100
+    x_0=np.array([10,10])
+    t_eval=np.linspace(t_0, t_1, 10000)
+    sol=l_v.solve(t_0, x_0,t_1,t_eval=t_eval)
+    t_sol, y_sol = sol
+    print(sol)
+
+    plt.plot(t_sol, y_sol[:, 0], label='Prey')
+    plt.plot(t_sol, y_sol[:, 1], label='Predator')
+    plt.xlabel('Time')
+    plt.ylabel('Population')
+    plt.title('Lotka-Volterra Model')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
 
 if __name__ == '__main__':
     # test_Lorenz()
-    test_pendulum()
+    # test_pendulum()
     # test_Rotation()
+    test_lotka_volterra()
 
     # """ Small skript to visualize a function class and check if integrals are computed correctly """
     # f = BrokenPolynomial()
