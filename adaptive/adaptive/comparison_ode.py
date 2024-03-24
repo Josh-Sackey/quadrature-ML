@@ -73,13 +73,12 @@ def onefun():
     """
     Integrate and plot one ODE (using PredictorODE) and print important statistics.
     """
-    step_sizes = [0.025, 0.029, 0.033, 0.039, 0.045, 0.052, 0.060, 0.070]
-    # step_sizes = [0.56, 0.58, 0.6, 0.62, 0.65, 0.68, 0.71, 0.74, 0.77, 0.8]
+    # step_sizes = [0.025, 0.029, 0.033, 0.039, 0.045, 0.052, 0.060, 0.070]
+    step_sizes = [0.56, 0.58, 0.6, 0.62, 0.65, 0.68, 0.71, 0.74, 0.77, 0.8]
     dim_state = 6  # nodes per integration step
     dim_action = len(step_sizes)
     memory = 0  # how many integration steps the predictor can look back
-    #x0 = HenonHeiles().sample_initial_x()
-    x0= np.array([1,0])
+    x0 = HenonHeiles().sample_initial_x()
     print(x0)
     # print(DoublePendulum().calc_E(x0))
     # x0 = np.array([0, (1 / 1) ** 0.5, 0, 0])
@@ -87,13 +86,9 @@ def onefun():
     d = x0.shape[0]  # dimension of the ODE state space
     error_tol = 0.0001
 
-    scaler = StandardScaler()
-    scaler.mean_ = np.zeros((dim_state * d + 1) * (memory + 1))
-    scaler.mean_[0] = -0.045
-    scaler.scale_ = 10 * np.ones((dim_state * d + 1) * (memory + 1))
-    scaler.scale_[0] = 0.1
+    scaler = load(open("test_scaler.pkl", "rb"))
 
-    env = ODEEnv(fun=VanDerPol(), max_iterations=10000, initial_step_size=step_sizes[0],
+    env = ODEEnv(fun=HenonHeiles(), max_iterations=10000, initial_step_size=step_sizes[0],
                  step_size_range=(step_sizes[0], step_sizes[-1]), reward_fun=None,
                  error_tol=error_tol, nodes_per_integ=dim_state, memory=memory, x0=x0, max_dist=20)
 
@@ -102,11 +97,11 @@ def onefun():
                                                          filename=None, lr=0.01, memory=memory),
                               scaler=scaler)
 
-    # best_predictors = BestPredictors().load()
-    # print(best_predictors.errors)
-    # print(best_predictors.rewards)
+    best_predictors = BestPredictors().load()
+    print(best_predictors.errors)
+    print(best_predictors.rewards)
     # print(best_predictors.nfev_training)
-    # predictor.model.set_weights(best_predictors.best_by_reward())
+    predictor.model.set_weights(best_predictors.best_by_reward())
     # predictor.model.set_weights(best_predictors.weights[1])
 
     # predictor = PredictorConstODE(0.015)  # 0.56
@@ -384,9 +379,9 @@ def save_pareto_plot():
 
 
 if __name__ == "__main__":
-    onefun()
+    # onefun()
     # one_fun_meta()
     # pareto_model()
     # pareto_const_predictor()
     # pareto_ode45()
-    # save_pareto_plot()
+    save_pareto_plot()
