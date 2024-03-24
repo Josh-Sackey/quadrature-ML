@@ -9,3 +9,54 @@ These files accompany the following preprint:
     Michael Dellnitz, Eyke Hüllermeier, Marvin Lücke, Sina Ober-Blöbaum, Christian Offen, Sebastian Peitz, Karlson Pfannschmidt
     https://arxiv.org/abs/2104.03562
   
+
+# Installing Python and Setting Up Virtual Environment
+
+## For Ubuntu:
+
+### Step 1: Update Package Index and Upgrade Packages
+
+```bash
+sudo apt update
+sudo apt upgrade
+
+### Step 2: Install Required Dependencies
+sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
+
+### Step 3: Download Python Source Code
+wget https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz
+
+### Step 4: Extract Source Code and Navigate to Directory
+tar -xzvf Python-3.7.12.tgz
+cd Python-3.7.12
+
+### Step 5: Configure and Install Python
+./configure --enable-optimizations
+make
+sudo make install
+
+### Step 6: Verify Python Installation
+python3.7 --version
+
+### Step 7: Set Up Virtual Environment
+python3.7 -m venv venv
+source venv/bin/activate
+
+## For Windows:
+Follow similar steps using the Command Prompt or PowerShell on Windows. You can download Python installer from the Python official website and install it. Then, open Command Prompt or PowerShell to execute Python commands.
+
+## For macOS:
+### Step 1: Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+### Step 2: Install Python Using Homebrew
+brew install python@3.7
+
+### Step 3: Verify Python Installation
+python3.7 --version
+
+### Step 4: Set Up Virtual Environment
+python3.7 -m venv venv
+
+### Step 5: Activate Virtual Environment
+source venv/bin/activate

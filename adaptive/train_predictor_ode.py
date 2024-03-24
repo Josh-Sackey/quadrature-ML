@@ -36,7 +36,7 @@ def main():
 
     predictor = PredictorQODE(step_sizes=step_sizes,
                               model=build_value_modelODE(dim_state=dim_state * d + 1, dim_action=dim_action,
-                                                         filename=None, lr=0.0001, memory=memory),
+                                                         filename=None, lr=0.001, memory=memory),
                               scaler=scaler)
 
     # integrator = ClassicRungeKutta()
@@ -50,7 +50,7 @@ def main():
         loss_this_episode = 0
         steps = 0
         done = False
-        eps = 0.25  # randomization
+        eps = 0.5  # randomization
         print('episode: {}'.format(episode))
 
         while not done:
