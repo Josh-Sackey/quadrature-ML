@@ -15,8 +15,8 @@ from copy import deepcopy
 
 def main():
     gamma = 0.0  # discount factor for future rewards
-    num_episodes = 10
-    step_sizes = [0.025, 0.029, 0.033, 0.039, 0.045, 0.052, 0.060, 0.070]
+    num_episodes = 100
+    step_sizes = np.linspace(0.02, 0.15, 20)
     dim_state = 6  # nodes per integration step
     dim_action = len(step_sizes)
     memory = 0  # how many integration steps the predictor can look back
@@ -36,7 +36,7 @@ def main():
 
     predictor = PredictorQODE(step_sizes=step_sizes,
                               model=build_value_modelODE(dim_state=dim_state * d + 1, dim_action=dim_action,
-                                                         filename=None, lr=0.001, memory=memory),
+                                                         filename=None, lr=0.000009, memory=memory),
                               scaler=scaler)
 
     # integrator = ClassicRungeKutta()
@@ -50,7 +50,7 @@ def main():
         loss_this_episode = 0
         steps = 0
         done = False
-        eps = 0.5  # randomization
+        eps = 0.3  # randomization
         print('episode: {}'.format(episode))
 
         while not done:

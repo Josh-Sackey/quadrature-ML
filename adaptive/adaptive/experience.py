@@ -1,5 +1,5 @@
 import numpy as np
-from adaptive.integrator import StateODE
+from integrator import StateODE
 
 
 class Experience:
