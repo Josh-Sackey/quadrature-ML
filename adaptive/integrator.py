@@ -651,6 +651,57 @@ class BackwardEulerPDE(IntegratorPDE):
         f_eval = f(phi, t + h)
         return StatePDE(h, {'f_eval': f_eval})
 
+# Simpsons Rule for PDEs
+class SimpsonsRulePDE(IntegratorPDE):
+    def __call__(self, state, phi0):
+        """
+        Simpson's Rule integration for PDEs.
+
+        Parameters
+        ----------
+        state : StatePDE
+            contains step_size and function evaluations
+        phi0 : np.ndarray
+            initial state
+
+        Returns
+        -------
+        np.ndarray
+            state after step_size
+        """
+        if len(state.f_evals) != 3:
+            raise ValueError('Number of f_Evals in state has to be 3.')
+
+        h = state.step_size
+        k1, k2, k3 = state.f_evals
+
+        # Simpson's Rule formula to compute phi at the next time step
+        return phi0 + (h / 6) * (k1 + 4 * k2 + k3)
+
+    @staticmethod
+    def calc_state(t, phi, h, f):
+        """
+        Parameters
+        ----------
+        t : float
+            time
+        phi : np.ndarray
+            state
+        h : float
+            step size
+        f : FunctionPDE
+
+        Returns
+        -------
+        StatePDE
+            state
+        """
+        # Compute evaluations at the required time points
+        k1 = f(phi, t)
+        k2 = f(phi, t + 0.5 * h)
+        k3 = f(phi, t + h)
+        return StatePDE(h, [k1, k2, k3])
+
 # Finite Element Method (FEM) for PDEs
 class FiniteElementMethodPDE(IntegratorPDE):
     def __init__(self):
