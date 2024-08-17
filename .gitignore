@@ -1,2 +1,4 @@
 .ipynb_checkpoints/RL for adaptive-dealii-heat-checkpoint.ipynb
 .ipynb_checkpoints/quadrature-checkpoint.ipynb
+__pycache__
+adaptive/__pycache__
