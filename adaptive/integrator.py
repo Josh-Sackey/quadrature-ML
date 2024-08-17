@@ -491,3 +491,220 @@ class RKDP(IntegratorODE):
         for idx in range(len(k)):
             out += step_size * self.b[idx] * k[idx]
         return x0 + out
+
+    
+# StatePDE Class
+class StatePDE:
+    def __init__(self, step_size, f_evals):
+        self.step_size = step_size
+        self.f_evals = f_evals
+
+# Integrator Base Class for PDEs
+class IntegratorPDE:
+    def __call__(self, state, phi0):
+        """
+        Base Integrator call for PDEs.
+
+        Parameters
+        ----------
+        state : StatePDE
+            contains step_size and function evaluations
+        phi0 : np.ndarray
+            initial state
+
+        Returns
+        -------
+        np.ndarray
+            state phi after step_size
+        """
+        return 0
+
+    @staticmethod
+    def calc_state(t, phi, h, f):
+        """
+        Parameters
+        ----------
+        t : float
+            time
+        phi : np.ndarray
+            state
+        h : float
+            step size
+        f : FunctionPDE
+
+        Returns
+        -------
+        StatePDE
+            state
+        """
+        return StatePDE(h, [f(phi, t)])
+
+# Forward Euler for PDEs
+class ForwardEulerPDE(IntegratorPDE):
+    def __call__(self, state, phi0):
+        """
+        Forward Euler integration for PDEs.
+
+        Parameters
+        ----------
+        state : StatePDE
+            contains step_size and function evaluations
+        phi0 : np.ndarray
+            initial state
+
+        Returns
+        -------
+        np.ndarray
+            state after step_size
+        """
+        if len(state.f_evals) != 1:
+            raise ValueError('Number of f_Evals in state has to be 1.')
+
+        step_size = state.step_size
+        current_derivative = state.f_evals[0]
+        return phi0 + step_size * current_derivative
+
+    @staticmethod
+    def calc_state(t, phi, h, f):
+        """
+        Parameters
+        ----------
+        t : float
+            time
+        phi : np.ndarray
+            state
+        h : float
+            step size
+        f : FunctionPDE
+
+        Returns
+        -------
+        StatePDE
+            state
+        """
+        k1 = f(phi, t)
+        return StatePDE(h, [k1])
+
+# Backward Euler for PDEs
+class BackwardEulerPDE(IntegratorPDE):
+    def __call__(self, state, phi0):
+        """
+        Backward Euler integration for PDEs.
+
+        Parameters
+        ----------
+        state : StatePDE
+            contains step_size and function evaluations
+        phi0 : np.ndarray
+            initial state
+
+        Returns
+        -------
+        np.ndarray
+            state after step_size
+        """
+        if len(state.f_evals) != 1:
+            raise ValueError('Number of f_Evals in state has to be 1.')
+
+        step_size = state.step_size
+        next_derivative = state.f_evals[0]
+        return phi0 + step_size * next_derivative
+
+    @staticmethod
+#     def calc_state(t, phi, h, f):
+#         """
+#         Parameters
+#         ----------
+#         t : float
+#             time
+#         phi : np.ndarray
+#             state
+#         h : float
+#             step size
+#         f : FunctionPDE
+
+#         Returns
+#         -------
+#         StatePDE
+#             state
+#         """
+#         k1 = f(phi, t + h)
+#         return StatePDE(h, [k1])
+    def calc_state(t, phi, h, f):
+        """
+        Parameters
+        ----------
+        t : float
+            Time
+        phi : np.ndarray
+            Current state
+        h : float
+            Step size
+        f : FunctionPDE
+            Function that computes the PDE residuals
+
+        Returns
+        -------
+        StatePDE
+            State containing updated information
+        """
+        f_eval = f(phi, t + h)
+        return StatePDE(h, {'f_eval': f_eval})
+
+# Finite Element Method (FEM) for PDEs
+class FiniteElementMethodPDE(IntegratorPDE):
+    def __init__(self):
+        pass  # Parameters for the mesh, basis functions, etc. would be initialized here
+
+    def __call__(self, state, phi0):
+        """
+        Finite Element Method integration for PDEs.
+
+        Parameters
+        ----------
+        state : StatePDE
+            contains step_size and function evaluations
+        phi0 : np.ndarray
+            initial state
+
+        Returns
+        -------
+        np.ndarray
+            state after step_size
+        """
+        mesh = state.f_evals['mesh']
+        basis_functions = state.f_evals['basis_functions']
+        f_eval = state.f_evals['f_eval']
+        K = self.assemble_stiffness_matrix(mesh, basis_functions)
+        F = self.assemble_load_vector(mesh, basis_functions, f_eval)
+        return np.linalg.solve(K, F)
+
+    def assemble_stiffness_matrix(self, mesh, basis_functions):
+        # Implement the assembly of the stiffness matrix
+        pass
+
+    def assemble_load_vector(self, mesh, basis_functions, f_eval):
+        # Implement the assembly of the load vector
+        pass
+
+    @staticmethod
+    def calc_state(t, phi, h, f):
+        """
+        Parameters
+        ----------
+        t : float
+            time
+        phi : np.ndarray
+            state
+        h : float
+            step size
+        f : FunctionPDE
+
+        Returns
+        -------
+        StatePDE
+            state
+        """
+        f_eval = f(phi, t)
+        # Replace 'mesh' and 'basis_functions' with actual implementations
+        return StatePDE(h, {'mesh': 'mesh', 'basis_functions': 'basis_functions', 'f_eval': f_eval})
