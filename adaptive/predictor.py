@@ -63,7 +63,7 @@ class PredictorQ(Predictor):
         np.ndarray
         """
         return self.model(self.scaler.transform([state[0]])).numpy()
-
+    
     def action_to_stepsize(self, action):
         """
 
@@ -88,61 +88,6 @@ class PredictorQ(Predictor):
         actions : np.ndarray
         """
         return self.model.train_on_batch(self.scaler.transform(states), actions)
-
-    # def visualize(self, domains, step_sizes, flat=False):
-    #     """
-    #     Visualize the predicting function in a 3D surface plot.
-    #
-    #     Parameters
-    #     ----------
-    #     domains : List[int or Tuple[int]]
-    #         domains for visualization, e.g. if the state is 5-d [0.1, (-1,1), 0, (-1,1), 0.2] would result in a plot
-    #         where h = 0.1, f3-f1 = 0, f5-f1=0.2 and (f2-f1), (f4-f1) vary between -1 and 1.
-    #         As the plot is 3D, only 2 domains should be tuples.
-    #     step_sizes : List[float]
-    #     flat : bool, optional
-    #         whether to plot as a surface plot or as a flat heatmap
-    #     """
-    #     # find idx of tuples in domains
-    #     dom_idx = []
-    #     for idx, domain in enumerate(domains):
-    #         if isinstance(domain, tuple) and len(domain) == 2:
-    #             dom_idx.append(idx)
-    #     if len(dom_idx) != 2:
-    #         raise ValueError("Need exactly 2 tuples of length 2 in domains.")
-    #
-    #     # build data
-    #     X = np.linspace(domains[dom_idx[0]][0], domains[dom_idx[0]][1], 61)
-    #     Y = np.linspace(domains[dom_idx[1]][0], domains[dom_idx[1]][1], 61)
-    #     X, Y = np.meshgrid(X, Y)
-    #
-    #     outputs = np.zeros(X.shape)
-    #     state = domains
-    #     state[dom_idx[0]] = 0
-    #     state[dom_idx[1]] = 0
-    #     state = np.array(state)
-    #     for i in range(X.shape[0]):
-    #         for j in range(X.shape[1]):
-    #             state[dom_idx[0]] = X[i, j]
-    #             state[dom_idx[1]] = Y[i, j]
-    #             outputs[i, j] = step_sizes[self.__call__(state)]
-    #
-    #     # plot
-    #     if not flat:
-    #         fig = plt.figure()
-    #         ax = fig.gca(projection='3d')
-    #         surf = ax.plot_surface(X, Y, outputs, cmap=cm.viridis, linewidth=0)
-    #         ax.set_zlabel('suggested stepsize')
-    #     else:
-    #         fig, ax = plt.subplots()
-    #         surf = ax.pcolormesh(X, Y, outputs, cmap=cm.viridis)
-    #
-    #     cbar = fig.colorbar(surf, shrink=0.5, aspect=5)
-    #     ax.set_xlabel('f2 - f1')
-    #     ax.set_ylabel('f3 - f1')
-    #     plt.grid()
-    #     plt.title('input stepsize: {}'.format(domains[0]))
-    #     plt.show()
 
 
 class PredictorConst(Predictor):
@@ -379,3 +324,92 @@ class MetaQODE(PredictorODE):
         actions : np.ndarray
         """
         return self.model.train_on_batch(self.scaler.transform(states), actions)
+    
+class PredictorQPDE(PredictorODE):
+    def __init__(self, step_sizes, model, scaler, use_idx=False):
+        """
+        Predictor for PDEs using a neural network model.
+
+        Parameters
+        ----------
+        step_sizes : list[float]
+        model : tf.keras.Model
+        scaler : StandardScaler
+        use_idx : bool, optional
+            Whether the step size is used in the state or an index referring to it.
+        """
+        self.use_idx = use_idx
+        self.step_sizes = step_sizes
+        self.scaler = scaler
+        self.model = model
+
+    def __call__(self, states, eps=0):
+        """
+        Parameters
+        ----------
+        states : list[PDEState]
+            List of states containing PDE fields (e.g., spatial grids).
+        eps : float
+            Probability that a random action is chosen instead of the one with the highest value.
+
+        Returns
+        -------
+        float
+            step_sizes[action]
+        """
+        flattened_states = np.concatenate([state.flatten(self.use_idx) for state in states])
+        actions = self.model(self.scaler.transform([flattened_states]))
+
+        action = np.argmax(actions)
+        rn = np.random.sample()
+
+        if rn < 0.2 * eps:
+            action = np.random.randint(len(self.step_sizes))
+        elif rn < 0.6 * eps:
+            action = min(action + 1, len(self.step_sizes) - 1)
+        elif rn < eps:
+            action = max(action - 1, 0)
+
+        return self.step_sizes[action]
+
+    def get_actions(self, states):
+        """
+        Return the value of each possible action.
+
+        Parameters
+        ----------
+        states : list[PDEState]
+            List of states containing PDE fields (e.g., spatial grids).
+
+        Returns
+        -------
+        np.ndarray
+        """
+        flattened_states = np.concatenate([state.flatten(self.use_idx) for state in states])
+        print("Shape of flattened_states before reshaping:", flattened_states.shape)
+        flattened_states = flattened_states.reshape(1, -1)  # Ensure it's 2D
+        print("Shape of flattened_states after reshaping:", flattened_states.shape)
+        assert flattened_states.shape[1] == self.scaler.mean_.shape[0], \
+            "Mismatch in number of features between scaler and input data"
+        scaled_states = self.scaler.transform(flattened_states)
+        print("Shape of scaled_states:", scaled_states.shape)
+        return self.model(scaled_states).numpy()
+    
+    def train_on_batch(self, states, actions):
+        """
+        Train the model.
+
+        Parameters
+        ----------
+        states : np.ndarray
+            Array of states transformed for PDE contexts.
+        actions : np.ndarray
+            Corresponding actions taken.
+
+        Returns
+        -------
+        Loss or training feedback from the model.
+        """
+        transformed_states = self.scaler.transform(states)
+        return self.model.train_on_batch(transformed_states, actions)
+

@@ -1,5 +1,5 @@
 import math
-from typing import Optional
+from typing import Optional,Callable, List, Dict, Union, Tuple
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -497,3 +497,209 @@ class ODEEnv:
         return (
             len(self.nodes) - 1
         ) * self.nodes_per_integ + self.nodes_per_integ * self.reps
+
+class PDEEnv:
+    def __init__(
+        self,
+        fun: Callable,
+        max_iterations: int,
+        initial_step_size: float,
+        step_size_range: Tuple[float, float],
+        reward_fun: Callable,
+        error_tol: float,
+        initial_state: List[float],
+        t0: float,
+        max_dist: float,
+        nodes_per_integ: int,
+        memory: int,
+        stepsize_to_idx: Optional[Callable] = None,
+    ):
+        """
+        Parameters
+        ----------
+        fun : Callable
+            Function class that handles PDEs, including solving and error estimation
+        max_iterations : int
+            Number of iterations per episode
+        initial_step_size : float
+        error_tol : float
+            Error tolerance for step size adjustments
+        initial_state : np.ndarray
+            Initial state of the PDE (spatial domain + initial condition)
+        t0 : float
+            Starting time
+        step_size_range : tuple[float, float]
+            (smallest step size, largest step size)
+        max_dist : float
+            Maximum distance (time or spatial extent) for integration
+        nodes_per_integ : int
+            Number of evaluations per integration step
+        memory : int
+            Number of previous iterations to store
+        reward_fun : Optional[Callable]
+            Reward function for error and step size
+        stepsize_to_idx : Optional[Callable]
+            Function to convert step size to index for state representation
+        """
+        self.t0 = t0
+        self.initial_state = initial_state
+        self.fun = fun
+        self.max_iterations = max_iterations
+        self.max_dist = max_dist
+        self.initial_step_size = initial_step_size
+        self.nodes_per_integ = nodes_per_integ
+        self.memory = memory
+        self.memory_states = []
+
+        self.current_iteration = 0
+        self.states = []  # [state(t_0), state(t_1), ...]
+        self.timesteps = []  # [t_0, t_1, ...]
+        self.errors = []
+        self.deltas = []  # [step_size_t_1 - step_size_t_0, ...]
+
+        self.error_tol = error_tol
+        self.step_size_range = step_size_range
+
+        if reward_fun is None:
+            self.reward_fun = lambda error, step_size: -np.log10(error + 1e-10)  # Default reward function
+        else:
+            self.reward_fun = reward_fun
+
+        self.stepsize_to_idx = stepsize_to_idx
+
+    def reset(self, integrator: Callable, reset_params: bool = True) -> List[np.ndarray]:
+        """
+        Reset the environment and return the initial state.
+
+        Parameters
+        ----------
+        integrator : Callable
+            Function for calculating errors and integrating PDE
+        reset_params : bool
+            If True, reinitialize parameters in the function class
+
+        Returns
+        -------
+        List[np.ndarray]
+            The initial state of the PDE
+        """
+        self.fun.reset(reset_params)
+        self.current_iteration = 0
+
+        state = self.initial_state
+        time = self.t0
+
+        self.states = [state]
+        self.timesteps = [time]
+        self.deltas = []
+        self.errors = []
+        self.memory_states = []
+        for i in range(self.memory + 1):
+            self.deltas.append(self.initial_step_size)
+            correct_state = self.fun.solve(time, state, time + self.initial_step_size)
+            # print("this is the env")
+            # print("Received t:", time, "Type:", type(time), "Shape:", getattr(time, 'shape', None))
+            # print("state ",state)
+            # print("initial_step_size ",self.initial_step_size)
+            # print("function to solve, ",self.fun.solve)
+            state_pde = integrator.calc_state(time, state, self.initial_step_size, self.fun.solve)
+            state = integrator(state_pde, self.initial_step_size)
+            error = np.linalg.norm(state - correct_state)
+            self.memory_states.append(state_pde)
+            self.errors.append(error)
+            self.states.append(state)
+            self.timesteps.append(time)
+            time += self.initial_step_size
+        self.memory_states.reverse()
+
+        return self.memory_states.copy()
+
+    def iterate(self, step_size: float, integrator: Callable, estimator: Optional[Callable] = None) -> Tuple[List[np.ndarray], float, bool, Dict[str, Union[np.ndarray, float]]]:
+        """
+        Iterate the environment one step forward.
+
+        Parameters
+        ----------
+        step_size : float
+            Step size for this iteration
+        integrator : Callable
+            Function for calculating errors and integrating PDE
+        estimator : Optional[Callable]
+            If an estimator is given, adjust step size based on error estimation
+
+        Returns
+        -------
+        Tuple[List[np.ndarray], float, bool, Dict[str, Union[np.ndarray, float]]]
+            Next state, reward, done flag, and additional info
+        """
+        info = {}
+
+        state = self.states[-1]
+        time = self.timesteps[-1]
+        self.deltas.append(step_size)
+
+        state_pde = integrator.calc_state(time, state, step_size, self.fun.solve)
+        #print("state pde", state_pde)
+        next_state = integrator(state_pde, step_size)
+        next_time = time + step_size
+
+        # Calculate reward
+        correct_state = self.fun.solve(time, state, next_time)
+        error = np.linalg.norm(next_state - correct_state)
+        info["correct_state"] = correct_state
+        info["exact_error"] = error
+        self.errors.append(error)
+        reward = self.reward_fun(error, step_size)
+
+        self.states.append(next_state)
+        self.timesteps.append(next_time)
+
+        # Include memory
+        self.memory_states.insert(0, state_pde)
+        self.memory_states.pop()
+
+        self.current_iteration += 1
+        done = (self.current_iteration >= self.max_iterations or next_time >= self.t0 + self.max_dist)
+        print("memory states", self.memory_states)
+
+        return self.memory_states.copy(), reward, done, info
+
+    def plot(
+        self,
+        t_min: Optional[float] = None,
+        t_max: Optional[float] = None,
+        episode: int = 0,
+        show: bool = True,
+        save: bool = False,
+    ):
+        """
+        Plot the PDE states, errors, and step sizes against time.
+
+        Parameters
+        ----------
+        t_min : Optional[float]
+            Left bound of x-axis
+        t_max : Optional[float]
+            Right bound of x-axis
+        episode : int
+            Index of the episode to plot
+        show : bool
+            If True, the plot will be shown
+        save : bool
+            If True, the plot will be saved to a file
+        """
+        # Adjust this function to plot PDE-specific data
+        fig, ax = plt.subplots()
+        # Example plotting code, you may need to adjust based on your state representation
+        for state in self.states:
+            ax.plot(state)  # Modify based on your state structure
+
+        if save:
+            fig.savefig(f"pde_adapt_{episode}.pdf")
+        if show:
+            plt.show()
+        plt.close()
+
+    @property
+    def evals(self) -> int:
+        return (len(self.states) - 1) * self.nodes_per_integ
