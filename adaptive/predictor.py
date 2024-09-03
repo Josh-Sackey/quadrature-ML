@@ -386,14 +386,31 @@ class PredictorQPDE(PredictorODE):
         np.ndarray
         """
         flattened_states = np.concatenate([state.flatten(self.use_idx) for state in states])
-        print("Shape of flattened_states before reshaping:", flattened_states.shape)
+        #print("Shape of flattened_states before reshaping:", flattened_states.shape)
         flattened_states = flattened_states.reshape(1, -1)  # Ensure it's 2D
-        print("Shape of flattened_states after reshaping:", flattened_states.shape)
+        # print("Shape of flattened_states after reshaping:", flattened_states.shape)
+        # print("flattened_states.shape",flattened_states.shape[1])
+        # print("self.scaler.mean_.shape",self.scaler.mean_.shape[0])
         assert flattened_states.shape[1] == self.scaler.mean_.shape[0], \
             "Mismatch in number of features between scaler and input data"
         scaled_states = self.scaler.transform(flattened_states)
-        print("Shape of scaled_states:", scaled_states.shape)
+        #print("Shape of scaled_states:", scaled_states.shape)
         return self.model(scaled_states).numpy()
+    
+    def action_to_stepsize(self, action):
+        """
+        Convert an action index to the corresponding step size.
+
+        Parameters
+        ----------
+        action : int
+
+        Returns
+        -------
+        float
+            step_sizes[action]
+        """
+        return self.step_sizes[action]
     
     def train_on_batch(self, states, actions):
         """
@@ -410,6 +427,21 @@ class PredictorQPDE(PredictorODE):
         -------
         Loss or training feedback from the model.
         """
-        transformed_states = self.scaler.transform(states)
-        return self.model.train_on_batch(transformed_states, actions)
+        # Step 1: Ensure states are processed to match the scaler's expected input shape
+        # Here we assume each state is processed to yield the correct feature size (4 features per state)
+        processed_states = np.array([state.flatten()[:4] for state in states])  # Adjust to ensure 4 features per state
+        print(f"Processed states shape: {processed_states.shape}")
 
+        # Step 2: Transform states using the pre-fitted scaler
+        try:
+            transformed_states = self.scaler.transform(processed_states)  # Ensure the scaler matches this data shape
+            print(f"Transformed states shape: {transformed_states.shape}")
+        except ValueError as e:
+            print("Error in scaling:", e)
+            return None  # Early exit if scaling fails
+
+        # Step 3: Train the model using the transformed states and corresponding actions
+        loss = self.model.train_on_batch(transformed_states, actions)
+
+        # Return the loss or any relevant training feedback
+        return loss
