@@ -1,5 +1,8 @@
 # Efficient time stepping for numerical integration using reinforcement learning
+# Funding: NSF DMS-2110774
+# https://www.nsf.gov/awardsearch/showAward?AWD_ID=2110774&HistoricalAwards=false
 
+**
 We learn step-size controllers for (1) adaptive quadrature rules and (2) adaptive integration schemes for ODEs.
 Please refer to the Jupyter notebook files "quadrature.ipynb" and "time_stepper_ODE.ipynb".
 
