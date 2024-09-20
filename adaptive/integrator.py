@@ -502,9 +502,9 @@ class StatePDE:
     def flatten(self, use_idx=False):
         # Flatten step_size and f_evals into a 1D array
         # For example, combine step_size with flattened f_evals
-        print("step_size:", self.step_size)
-        print("f_evals shape:", np.array(self.f_evals).shape)
-        print("f_evals content:", self.f_evals)
+        #print("step_size:", self.step_size)
+        #print("f_evals shape:", np.array(self.f_evals).shape)
+        #print("f_evals content:", self.f_evals)
         f_evals_reshaped = np.array(self.f_evals).flatten()[:3]  # Choose 3 elements
         return np.concatenate([[self.step_size], f_evals_reshaped])
 
@@ -603,10 +603,10 @@ class SimpsonsRulePDE(IntegratorPDE):
         # print("Received t:", t, "Type:", type(t), "Shape:", getattr(t, 'shape', None))
         # print("Received node:", node, "Type:", type(node), "Shape:", getattr(node, 'shape', None))
         # print("Received h:", h, "Type:", type(h), "Shape:", getattr(h, 'shape', None))
-        print("t", t)
-        print("node", node)
-        print("h",h)
-        print("fun", f)
+        # print("t", t)
+        # print("node", node)
+        # print("h",h)
+        # print("fun", f)
 
         k1 = f( t, node, t + 0.5 * h)  # Use the function with the correct interval
         k2 = f( t + 0.5 * h,node, t + h)  # Midpoint evaluation

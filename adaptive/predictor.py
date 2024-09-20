@@ -430,12 +430,12 @@ class PredictorQPDE(PredictorODE):
         # Step 1: Ensure states are processed to match the scaler's expected input shape
         # Here we assume each state is processed to yield the correct feature size (4 features per state)
         processed_states = np.array([state.flatten()[:4] for state in states])  # Adjust to ensure 4 features per state
-        print(f"Processed states shape: {processed_states.shape}")
+        # print(f"Processed states shape: {processed_states.shape}")
 
         # Step 2: Transform states using the pre-fitted scaler
         try:
             transformed_states = self.scaler.transform(processed_states)  # Ensure the scaler matches this data shape
-            print(f"Transformed states shape: {transformed_states.shape}")
+            # print(f"Transformed states shape: {transformed_states.shape}")
         except ValueError as e:
             print("Error in scaling:", e)
             return None  # Early exit if scaling fails

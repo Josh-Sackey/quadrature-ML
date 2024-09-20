@@ -660,7 +660,7 @@ class PDEEnv:
 
         self.current_iteration += 1
         done = (self.current_iteration >= self.max_iterations or next_time >= self.t0 + self.max_dist)
-        print("memory states", self.memory_states)
+        # print("memory states", self.memory_states)
 
         return self.memory_states.copy(), reward, done, info
 
